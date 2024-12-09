@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmarker</title>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #f7e8d1, #fdf6e3);
+            font-family: "Arial", sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            text-align: center;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        h1 {
+            font-family: "Brush Script MT", cursive;
+            font-size: 3.8rem;
+            margin-bottom: 15px;
+            color: #4caf50;
+            position: relative;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            animation: glowEffect 3s infinite;
+        }
+        @keyframes glowEffect {
+            0%, 100% {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1), 0 0 10px #ff9800, 0 0 20px #ff9800;
+            }
+            50% {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1), 0 0 20px #ff9800, 0 0 40px #ff9800;
+            }
+        }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 6px;
+            width: 160px;
+            background-color: #ff9800;
+            border-radius: 5px;
+        }
+        .subtitle {
+            font-size: 1.3rem;
+            color: #4caf50;
+            margin: 20px 0 30px;
+            font-style: italic;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .form-label {
+            font-weight: bold;
+            align-self: flex-start;
+            margin-left: 5px;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            max-width: 450px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        input:focus {
+            border-color: #4caf50;
+            outline: none;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        button {
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #c9302c;
+            transform: scale(1.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            background: #fff;
+        }
+        th {
+            background-color: #f7f7f7;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .btn-visit {
+            background-color: #4caf50;
+            color: white;
+            padding: 7px 15px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-visit:hover {
+            background-color: #388e3c;
+            transform: scale(1.05);
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+            padding: 7px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bookmarker</h1>
+        <p class="subtitle"><i class="fas fa-bookmark"></i> Bookmark your favorite sites <i class="fas fa-bookmark"></i></p>
+        <form id="bookmarkForm">
+            <label for="siteName" class="form-label"><i class="fas fa-save"></i> Site Name</label>
+            <input type="text" id="siteName" placeholder="Bookmark Name" required>
+
+            <label for="siteURL" class="form-label"><i class="fas fa-link"></i> Site URL</label>
+            <input type="url" id="siteURL" placeholder="Website URL" required>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Index</th>
+                    <th>Website Name</th>
+                    <th>Visit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="bookmarkList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bookmarkForm = document.getElementById('bookmarkForm');
+            const siteNameInput = document.getElementById('siteName');
+            const siteURLInput = document.getElementById('siteURL');
+            const bookmarkList = document.getElementById('bookmarkList');
+
+            function fetchBookmarks() {
+                const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+                bookmarkList.innerHTML = '';
+                bookmarks.forEach((bookmark, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${bookmark.name}</td>
+                        <td><a href="${bookmark.url}" target="_blank" class="btn-visit">Visit</a></td>
+                        <td><button class="btn-delete" data-index="${index}">Delete</button></td>
+                    `;
+                    bookmarkList.appendChild(row);
+                });
+            }
+
+            bookmarkForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = siteNameInput.value.trim();
+                let url = siteURLInput.value.trim();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+                bookmarks.push({ name, url });
+                localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+                siteNameInput.value = '';
+                siteURLInput.value = '';
+                fetchBookmarks();
+            });
+
+            bookmarkList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-delete')) {
+                    const index = e.target.getAttribute('data-index');
+                    const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+                    bookmarks.splice(index, 1);
+                    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+                    fetchBookmarks();
+                }
+            });
+
+            fetchBookmarks();
+        });
+    </script>
+</body>
+</html>
